@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Виртуална лаборатория: Байт и пиксел</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
+header{background:#172033;color:white;padding:22px 28px}
+h1{margin:0 0 6px;font-size:28px}
+header p{margin:0;color:#cbd5e1}
+main{max-width:1100px;margin:22px auto;padding:0 18px}
+.card{background:white;border-radius:16px;padding:22px;margin-bottom:20px;box-shadow:0 4px 16px #00000012}
+h2{margin-top:0}
+.explain{line-height:1.55}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+button{border:0;border-radius:10px;padding:11px 15px;background:#2563eb;color:white;font-weight:700;cursor:pointer}
+button.secondary{background:#64748b}
+input[type=range]{width:260px}
+.byte{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;max-width:620px;margin:18px 0}
+.bit{height:64px;border-radius:10px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;transition:.15s}
+.bit.on{background:#2563eb;color:white}
+.value{font-size:20px;font-weight:bold;margin:10px 0}
+.gridwrap{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.pixel{width:170px;height:170px;border:10px solid #172033;border-radius:12px;background:rgb(128,128,128)}
+.rgb{min-width:290px}
+.row{display:grid;grid-template-columns:55px 1fr 65px;gap:10px;align-items:center;margin:13px 0}
+.swatch{height:15px;border-radius:8px}
+.mini{font-size:14px;color:#475569}
+.big{font-size:30px;font-weight:800}
+.note{background:#eff6ff;border-left:5px solid #2563eb;padding:13px 15px;border-radius:8px;line-height:1.5}
+.quiz{display:grid;gap:10px}
+.quiz button{background:#0f766e}
+.answer{display:none;margin-top:10px;padding:12px;border-radius:8px;background:#ecfdf5}
+code{background:#eef2ff;padding:2px 5px;border-radius:4px}
+.weights{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;max-width:620px;margin:18px 0 5px}
+.weight{font-size:15px;text-align:center;font-weight:800;color:#475569}
+ .gamebox{margin-top:16px;padding:15px;border:2px dashed #2563eb;border-radius:10px;background:#f8fbff;line-height:1.5}
+.target-box{margin-top:20px;padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #cbd5e1}
+.target-box h3{margin:0 0 8px}
+.targets{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin-top:14px}
+.target{padding:12px 8px;text-align:center;border:2px solid #cbd5e1;border-radius:10px;background:white}
+.target .symbol{font-size:30px;font-weight:900;display:block;color:#334155}
+.target .code{display:block;margin-top:4px;background:none}
+.target.correct{border-color:#16a34a;background:#f0fdf4}
+.target.correct .symbol{color:#16a34a}
+.target.current{border-color:#2563eb}
+
+@media(max-width:650px){.byte{gap:4px}.bit{height:50px;font-size:18px}.pixel{width:130px;height:130px}}
+</style>
+</head>
+<body>
+<header>
+<h1>Виртуална лаборатория: Байт и пиксел</h1>
+<p>Експериментирай и виж как информацията се представя с битове и байтове.</p>
+</header>
+
+<main>
+<section class="card">
+<h2>1. Един байт = 8 бита</h2>
+<p class="explain">Всеки бит може да бъде <b>0</b> или <b>1</b>. Един байт съдържа 8 бита. Променяй битовете и виж как различните комбинации дават различни стойности.</p>
+<div class="byte" id="bits"></div>
+<div class="value">Десетична стойност: <span id="decimal">0</span></div>
+<div class="value">Възможни комбинации с 8 бита: <span>2<sup>8</sup> = 256</span></div>
+<div class="controls">
+<button id="random">Случайна комбинация</button>
+<button class="secondary" id="zero">Нулирай</button>
+</div>
+<div class="note">В реалната цифрова система битът е най-малката единица информация. Байтът е група от 8 бита.</div>
+</section>
+
+<section class="card">
+<h2>2. Игра: открий буквата по кода</h2>
+<p class="explain">Всеки от 8-те бита има стойност. Отляво надясно те са <b>128, 64, 32, 16, 8, 4, 2, 1</b>. Кликни върху битовете, за да ги включваш и изключваш. Сборът на включените стойности образува числото на кода.</p>
+<div class="weights" id="weights"></div>
+<div class="byte" id="charBits"></div>
+<div class="value">Сбор на включените стойности: <span id="charCode">0</span></div>
+<div class="value">Получен символ: <span id="charOut" class="big">—</span></div>
+<div class="controls">
+<button id="charRandom">Нова комбинация</button>
+<button class="secondary" id="charReset">Нулирай</button>
+</div>
+<div class="note"><b>Пример:</b> ако са включени 64 + 32 + 1, получаваме <b>97</b>. Код 97 е малко <b>a</b> в ASCII. Твоята задача е да откриваш комбинации и да проверяваш какъв символ се получава.</div>
+<div class="gamebox">
+<b>Мисия:</b> Опитай да получиш код <b>97</b>. Кои битове трябва да включиш?
+</div>
+
+<div class="target-box">
+<h3>Предизвикателство: възпроизведи кода</h3>
+<p>Виж кода на символа и го възпроизведи с 8-те бита отгоре. При правилна комбинация символът светва.</p>
+<div class="targets" id="targets"></div>
+<p class="mini">Използвани са кодове по Unicode/UTF-8 за българските букви. За тази игра показваме числовата стойност на Unicode символа.</p>
+</div>
+</section>
+
+<section class="card">
+<h2>3. Три байта = един цветен пиксел</h2>
+<p class="explain">Един цветен пиксел може да се запише с <b>3 байта</b>. Не всеки цвят е „един байт“. Вместо това имаме <b>три отделни байта</b> — по един за трите основни цветови канала: червен, зелен и син.</p>
+<div class="gridwrap">
+<div>
+<div class="pixel" id="pixel"></div>
+<div class="big" id="rgbText">RGB(128, 128, 128)</div>
+</div>
+<div class="rgb">
+<div class="row"><b>1 байт<br>R</b><input id="r" type="range" min="0" max="255" value="128"><span id="rv">128</span></div>
+<div class="swatch" id="rs" style="background:#ef4444"></div>
+<div class="row"><b>1 байт<br>G</b><input id="g" type="range" min="0" max="255" value="128"><span id="gv">128</span></div>
+<div class="swatch" id="gs" style="background:#22c55e"></div>
+<div class="row"><b>1 байт<br>B</b><input id="b" type="range" min="0" max="255" value="128"><span id="bv">128</span></div>
+<div class="swatch" id="bs" style="background:#3b82f6"></div>
+</div>
+</div>
+<div class="note"><b>R = 1 байт</b> за червеното количество<br><b>G = 1 байт</b> за зеленото количество<br><b>B = 1 байт</b> за синьото количество<br><br>Следователно: <b>1 пиксел = 3 байта</b> в тази RGB демонстрация. Стойността на всеки байт е от 0 до 255.</div>
+</section>
+
+<section class="card">
+<h2>4. Провери какво си разбрал</h2>
+<div class="quiz">
+<button onclick="show('a')">Колко различни комбинации има с 8 бита?</button>
+<div class="answer" id="a">256 комбинации.</div>
+<button onclick="show('b')">Колко байта използва един RGB пиксел в тази демонстрация?</button>
+<div class="answer" id="b">3 байта: R + G + B.</div>
+<button onclick="show('c')">Какво се променя, когато смениш стойността на R, G или B?</button>
+<div class="answer" id="c">Променя се цветът на пиксела.</div>
+</div>
+</section>
+</main>
+
+<script>
+const bits=document.getElementById('bits');
+let state=Array(8).fill(0);
+function renderBits(){
+  bits.innerHTML='';
+  state.forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='bit'+(v?' on':'');
+    d.textContent=v;
+    d.onclick=()=>{state[i]^=1;renderBits()};
+    bits.appendChild(d);
+  });
+  document.getElementById('decimal').textContent=parseInt(state.join(''),2);
+}
+renderBits();
+document.getElementById('random').onclick=()=>{state=state.map(()=>Math.random()>.5?1:0);renderBits()};
+document.getElementById('zero').onclick=()=>{state=Array(8).fill(0);renderBits()};
+
+const bitWeights=[128,64,32,16,8,4,2,1];
+let charState=[0,1,1,0,0,0,0,1]; // 97 = a
+const charBits=document.getElementById('charBits');
+const weights=document.getElementById('weights');
+
+const targetsData=[
+  {s:'а',code:97},{s:'б',code:98},{s:'в',code:99},{s:'г',code:100},
+  {s:'д',code:101},{s:'е',code:1077},{s:'ж',code:1078},{s:'з',code:1079},
+  {s:'0',code:48},{s:'1',code:49},{s:'2',code:50},{s:'3',code:51}
+];
+// For an 8-bit byte game, include Cyrillic characters whose Unicode code point
+// is above 255 only as visible reference targets; they cannot be represented by
+// one byte in Unicode. The game therefore highlights the ASCII-compatible
+// lowercase "а" example and digits directly, while showing the Cyrillic codes
+// as a comparison.
+function renderTargets(){
+  const box=document.getElementById('targets');
+  box.innerHTML='';
+  targetsData.forEach(t=>{
+    const d=document.createElement('div');
+    d.className='target';
+    d.dataset.code=t.code;
+    d.innerHTML=`<span class="symbol">${t.s}</span><span class="code">код: ${t.code}</span>`;
+    box.appendChild(d);
+  });
+}
+function renderCharBits(){
+  weights.innerHTML='';
+  bitWeights.forEach(w=>{
+    const d=document.createElement('div');
+    d.className='weight'; d.textContent=w; weights.appendChild(d);
+  });
+  charBits.innerHTML='';
+  charState.forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='bit'+(v?' on':'');
+    d.textContent=v; d.title='Стойност: '+bitWeights[i];
+    d.onclick=()=>{charState[i]^=1;renderCharBits()};
+    charBits.appendChild(d);
+  });
+  const n=charState.reduce((sum,v,i)=>sum+v*bitWeights[i],0);
+  document.getElementById('charCode').textContent=n;
+  const ch=(n>=48&&n<=57)||(n>=65&&n<=90)||(n>=97&&n<=122)?String.fromCharCode(n):'—';
+  document.getElementById('charOut').textContent=ch;
+  document.querySelectorAll('.target').forEach(el=>{
+    el.classList.toggle('correct',Number(el.dataset.code)===n);
+  });
+}
+document.getElementById('charRandom').onclick=()=>{
+  charState=Array.from({length:8},()=>Math.random()>.5?1:0); renderCharBits()
+};
+document.getElementById('charReset').onclick=()=>{
+  charState=Array(8).fill(0); renderCharBits()
+};
+renderTargets();
+renderCharBits();
+
+function updatePixel(){
+  const r=+document.getElementById('r').value,g=+document.getElementById('g').value,b=+document.getElementById('b').value;
+  document.getElementById('pixel').style.background=`rgb(${r},${g},${b})`;
+  document.getElementById('rgbText').textContent=`RGB(${r}, ${g}, ${b})`;
+  document.getElementById('rv').textContent=r; document.getElementById('gv').textContent=g; document.getElementById('bv').textContent=b;
+}
+['r','g','b'].forEach(id=>document.getElementById(id).oninput=updatePixel);
+function show(id){document.getElementById(id).style.display='block'}
+</script>
+</body>
+</html>
