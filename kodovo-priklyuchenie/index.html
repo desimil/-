@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Кодово приключение с Роби</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Оформление: горна лента + един изглед на екран (мисии / мисия / ниво / учител).
+   Блоковете имат цветове по вид команда, като в Scratch. */
+:root {
+  --bg: #e9f0f5;
+  --surface: #ffffff;
+  --surface-2: #f3f7fa;
+  --ink: #1b2a41;
+  --muted: #5b6b80;
+  --line: #d3dde7;
+  --accent: #f26b1d;
+  --accent-ink: #ffffff;
+  --good: #1f9d55;
+  --bad: #d33d3d;
+  --gold: #f5b301;
+
+  --b-move: #3b7ddd; --b-turn: #7b5cd6; --b-jump: #11998e; --b-loop: #e08a00;
+  --b-func: #d6458f; --b-if: #3f9b2f; --b-while: #c4462d;
+
+  --forest: #cfe8c4; --forest-2: #b7dcaa;
+  --desert: #f4e1b0; --desert-2: #ead08f;
+  --ice: #dceef8;    --ice-2: #c4e2f2;
+  --space: #d9d5f2;  --space-2: #c5bfea;
+  --water: #5bb7e8;  --water-2: #3d9fd4;
+
+  --display: "Rubik", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111a26; --surface: #1a2534; --surface-2: #213044; --ink: #e8eef6; --muted: #9fb0c5;
+    --line: #2f4057; --accent: #ff8a45; --accent-ink: #1b1208; --good: #4cc983; --bad: #ff7272; --gold: #ffc93c;
+    --forest: #2d4a2f; --forest-2: #36583a; --desert: #4d4126; --desert-2: #5b4d2c;
+    --ice: #23415a; --ice-2: #2b4d69; --space: #312c55; --space-2: #3a3463;
+    --water: #2b7fb3; --water-2: #23699a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111a26; --surface: #1a2534; --surface-2: #213044; --ink: #e8eef6; --muted: #9fb0c5;
+  --line: #2f4057; --accent: #ff8a45; --accent-ink: #1b1208; --good: #4cc983; --bad: #ff7272; --gold: #ffc93c;
+  --forest: #2d4a2f; --forest-2: #36583a; --desert: #4d4126; --desert-2: #5b4d2c;
+  --ice: #23415a; --ice-2: #2b4d69; --space: #312c55; --space-2: #3a3463;
+  --water: #2b7fb3; --water-2: #23699a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible, summary:focus-visible, .slot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Горна лента */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--ink); color: var(--bg); }
+.top-in { max-width: 1240px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0; color: inherit; }
+.brand .bot { font-size: 30px; line-height: 1; }
+.brand b { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: .01em; }
+.nav { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.nav button { background: transparent; border: 0; padding: 8px 12px; border-radius: 10px; font-weight: 700; color: inherit; opacity: .8; }
+.nav button[aria-current="true"] { background: var(--accent); color: var(--accent-ink); opacity: 1; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 20px 16px 48px; }
+
+/* Начален изглед */
+.hero { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; background: var(--surface); border-radius: 20px; padding: 22px 26px; border: 1px solid var(--line); }
+.hero .face { font-size: 76px; line-height: 1; }
+.hero h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; }
+.hero p { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
+.total { min-width: 180px; text-align: right; }
+.total .num { font-family: var(--display); font-weight: 800; font-size: 34px; font-variant-numeric: tabular-nums; }
+.total .lbl { color: var(--muted); font-size: 14px; }
+.bar { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
+.bar i { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
+
+.howto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 6px; }
+.howto div { padding: 12px 14px; border-radius: var(--radius); background: var(--surface-2); font-size: 15px; }
+.howto b { font-family: var(--display); display: block; }
+
+.world { margin-top: 28px; }
+.world-h { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.world-h h2 { font-size: 22px; }
+.world-h span { color: var(--muted); font-size: 14px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 0; overflow: hidden; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(20, 40, 70, .14); }
+.card .art { height: 104px; display: grid; place-items: center; font-size: 50px; position: relative; }
+.card .art .no { position: absolute; top: 8px; left: 10px; font-family: var(--display); font-weight: 800; font-size: 14px; background: var(--surface); padding: 2px 9px; border-radius: 99px; }
+.card .meta { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.card .meta b { font-family: var(--display); font-size: 17px; }
+.card .meta small { color: var(--muted); font-size: 14px; }
+.card .prog { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; margin-top: auto; padding-top: 6px; font-variant-numeric: tabular-nums; }
+.w-forest { background: repeating-linear-gradient(45deg, var(--forest), var(--forest) 12px, var(--forest-2) 12px, var(--forest-2) 24px); }
+.w-desert { background: repeating-linear-gradient(45deg, var(--desert), var(--desert) 12px, var(--desert-2) 12px, var(--desert-2) 24px); }
+.w-ice { background: repeating-linear-gradient(45deg, var(--ice), var(--ice) 12px, var(--ice-2) 12px, var(--ice-2) 24px); }
+.w-space { background: repeating-linear-gradient(45deg, var(--space), var(--space) 12px, var(--space-2) 12px, var(--space-2) 24px); }
+
+/* Изглед на мисия */
+.back { background: none; border: 0; color: var(--muted); font-weight: 700; padding: 4px 0; margin-bottom: 10px; }
+.mhead { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
+.mhead .art { height: 120px; border-radius: 16px; display: grid; place-items: center; font-size: 60px; }
+.mhead h1 { font-size: 30px; font-weight: 800; }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 13px; font-weight: 800; color: var(--muted); }
+.mhead p { margin: 6px 0 0; max-width: 70ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.levels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.lvl { border: 2px solid var(--line); background: var(--surface); border-radius: 16px; padding: 14px 8px; display: grid; gap: 4px; justify-items: center; }
+.lvl b { font-family: var(--display); font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.lvl .st { letter-spacing: 2px; font-size: 18px; min-height: 24px; }
+.lvl.done { border-color: var(--gold); }
+.lvl.locked { opacity: .45; cursor: not-allowed; }
+.lvl:not(.locked):hover { border-color: var(--accent); }
+
+/* Изглед на ниво */
+.play { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; min-width: 0; }
+.lhead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.lhead h1 { font-size: 22px; font-weight: 800; }
+.lhead .count { margin-left: auto; font-weight: 800; font-size: 14px; background: var(--surface-2); padding: 6px 12px; border-radius: 99px; font-variant-numeric: tabular-nums; }
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+.tabs button { border: 1px solid var(--line); background: var(--surface-2); padding: 5px 12px; border-radius: 99px; font-weight: 700; font-size: 14px; }
+.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tabs .note { color: var(--muted); font-size: 14px; }
+
+.boardwrap { display: grid; justify-content: center; overflow-x: auto; }
+.board { position: relative; border-radius: 12px; overflow: hidden; }
+.cell { position: absolute; display: grid; place-items: center; }
+.cell.g { background: var(--forest); }
+.cell.g.alt { background: var(--forest-2); }
+.th-desert .cell.g { background: var(--desert); } .th-desert .cell.g.alt { background: var(--desert-2); }
+.th-ice .cell.g { background: var(--ice); } .th-ice .cell.g.alt { background: var(--ice-2); }
+.th-space .cell.g { background: var(--space); } .th-space .cell.g.alt { background: var(--space-2); }
+.cell.w { background: var(--water); }
+.cell.w.alt { background: var(--water-2); }
+.cell.r { background: var(--forest-2); }
+.th-desert .cell.r { background: var(--desert-2); } .th-ice .cell.r { background: var(--ice-2); } .th-space .cell.r { background: var(--space-2); }
+.star { position: absolute; display: grid; place-items: center; transition: transform .3s, opacity .3s; pointer-events: none; }
+.star.got { transform: scale(1.8) translateY(-20px); opacity: 0; }
+.hero-bot { position: absolute; display: grid; place-items: center; transition: left .28s ease, top .28s ease; z-index: 3; pointer-events: none; }
+.hero-bot .em { line-height: 1; filter: drop-shadow(0 3px 2px rgba(0,0,0,.25)); }
+.hero-bot .dir { position: absolute; inset: 0; transition: transform .25s; }
+.hero-bot .dir::before { content: ""; position: absolute; left: 50%; top: -1px; transform: translateX(-50%); border: 8px solid transparent; border-bottom: 11px solid var(--accent); border-top: 0; }
+.hero-bot.hop .em { animation: hop .3s ease; }
+.hero-bot.ouch .em { animation: shake .4s ease; }
+@keyframes hop { 50% { transform: translateY(-40%) scale(1.15); } }
+@keyframes shake { 20%, 60% { transform: translateX(-6px) rotate(-8deg); } 40%, 80% { transform: translateX(6px) rotate(8deg); } }
+
+.say { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; }
+.say .who { font-size: 30px; line-height: 1; }
+.bubble { flex: 1; background: var(--surface-2); border-radius: 4px 14px 14px 14px; padding: 10px 14px; font-weight: 700; min-height: 46px; }
+.bubble.bad { background: color-mix(in srgb, var(--bad) 16%, var(--surface)); }
+.bubble.good { background: color-mix(in srgb, var(--good) 18%, var(--surface)); }
+
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); padding: 9px 14px; border-radius: 12px; font-weight: 800; }
+.btn.run { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-size: 17px; padding: 10px 22px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.speed { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); font-weight: 700; margin-left: auto; }
+
+.palette { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); margin-bottom: 12px; }
+.pal { border: 0; color: #fff; padding: 8px 12px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.2); }
+.pal:active { transform: translateY(2px); }
+.k-fwd { background: var(--b-move); } .k-left, .k-right { background: var(--b-turn); } .k-jump { background: var(--b-jump); }
+.k-rep { background: var(--b-loop); } .k-call { background: var(--b-func); } .k-if { background: var(--b-if); } .k-while { background: var(--b-while); }
+
+.progs { display: grid; gap: 12px; overflow-x: auto; }
+.progs h3 { font-size: 15px; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+.progs h3 small { font-family: var(--body); color: var(--muted); font-weight: 700; }
+.slot { min-height: 46px; border: 2px dashed transparent; border-radius: 12px; padding: 6px; display: grid; gap: 6px; background: var(--surface-2); }
+.slot.active { border-color: var(--accent); }
+.slot.over { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
+.slot .here { font-size: 13px; color: var(--muted); font-weight: 700; padding: 2px 6px; border-radius: 8px; text-align: left; border: 0; background: transparent; }
+.slot.active > .here { color: var(--accent); }
+.blk { border-radius: 10px; color: #fff; box-shadow: inset 0 -3px 0 rgba(0,0,0,.18); }
+.blk > .row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; flex-wrap: wrap; }
+.blk > .row .lab { font-weight: 800; }
+.blk select { font: inherit; font-weight: 800; border-radius: 8px; border: 0; padding: 2px 4px; background: rgba(255,255,255,.92); color: #1b2a41; }
+.blk .tools { margin-left: auto; display: flex; gap: 2px; }
+.blk .tools button { background: rgba(255,255,255,.18); border: 0; color: #fff; border-radius: 6px; width: 28px; height: 26px; font-size: 13px; padding: 0; }
+.blk .tools button:hover { background: rgba(255,255,255,.35); }
+.blk > .inner { margin: 0 6px 6px 18px; }
+.blk > .inner .slot { background: var(--surface); }
+.blk .elselab { padding: 0 8px 4px; font-weight: 800; }
+.blk.running { outline: 4px solid var(--gold); outline-offset: 1px; }
+.blk.err { outline: 4px solid var(--bad); outline-offset: 1px; }
+
+.code { font-family: var(--mono); font-size: 14px; background: var(--surface-2); border-radius: 12px; padding: 12px; white-space: pre; overflow-x: auto; margin-top: 12px; }
+
+/* Прозорец при успех */
+.modal { position: fixed; inset: 0; background: rgba(10, 20, 35, .55); display: grid; place-items: center; z-index: 50; padding: 16px; }
+.modal .box { background: var(--surface); border-radius: 22px; padding: 26px; max-width: 420px; width: 100%; text-align: center; display: grid; gap: 10px; }
+.modal .big { font-size: 46px; letter-spacing: 6px; }
+.modal h2 { font-size: 28px; }
+.modal .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+
+/* Учителски ресурси */
+.teach { display: grid; gap: 18px; }
+.teach .intro { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+.teach .intro h1 { font-size: 30px; font-weight: 800; margin-bottom: 8px; }
+.teach .intro p { max-width: 75ch; margin: 6px 0; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--display); font-size: 14px; color: var(--muted); }
+td.n { font-variant-numeric: tabular-nums; font-weight: 800; }
+.plans { display: grid; gap: 10px; }
+details.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 16px; }
+details.plan summary { cursor: pointer; padding: 10px 0; font-family: var(--display); font-weight: 700; font-size: 17px; display: flex; gap: 10px; align-items: center; }
+details.plan summary .tag { margin-left: auto; font-family: var(--body); font-size: 13px; color: var(--muted); font-weight: 700; }
+.plan-body { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; padding-bottom: 14px; }
+.plan-body h4 { margin: 8px 0 2px; font-family: var(--display); font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.plan-body ul { margin: 0; padding-left: 20px; }
+.plan-body p { margin: 0; }
+.timeline { display: flex; gap: 4px; margin-top: 4px; font-size: 13px; font-weight: 700; }
+.timeline span { padding: 4px 8px; border-radius: 8px; background: var(--surface-2); }
+.settings { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: var(--surface-2); font-size: 14px; font-weight: 700; }
+
+@media (max-width: 980px) {
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .play { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .hero { grid-template-columns: 1fr; text-align: left; }
+  .hero .face { font-size: 54px; }
+  .total { text-align: left; }
+  .howto { grid-template-columns: 1fr; }
+  .levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mhead { grid-template-columns: 1fr; }
+  .mhead .art { height: 80px; }
+  .plan-body { grid-template-columns: 1fr; }
+  .speed { margin-left: 0; }
+  .blk > .inner { margin-left: 8px; }
+}
+@media (max-width: 420px) {
+  .cards { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <button class="brand" id="brand" type="button"><span class="bot" aria-hidden="true">🤖</span><b>Кодово приключение</b></button>
+    <nav class="nav" aria-label="Раздели">
+      <button type="button" data-nav="home" id="nav-home">Мисии</button>
+      <button type="button" data-nav="teacher" id="nav-teacher">За учителя</button>
+    </nav>
+  </div>
+</header>
+<main id="app"></main>
+
+<div class="modal" id="modal" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="big" id="modal-stars">⭐⭐⭐</div>
+    <h2 id="modal-title">Браво!</h2>
+    <p id="modal-text"></p>
+    <div class="btns">
+      <button class="btn" type="button" id="modal-again">Опитай пак</button>
+      <button class="btn run" type="button" id="modal-next">Следващо ниво ➜</button>
+    </div>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script src="levels.js"></script>
+<script src="lessons.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
